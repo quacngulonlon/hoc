@@ -6,7 +6,7 @@
   <title>Mô Hình Tế Bào Y Sinh & Hệ Thống Nội Màng</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Tải KaTeX để hiển thị công thức toán học và ký hiệu NST mượt mà -->
+  <!-- KaTeX hỗ trợ hiển thị công thức và ký hiệu toán học / NST -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   <style>
@@ -18,7 +18,7 @@
     .hotspot-active {
       animation: pulse-ring 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
     }
-    /* Thanh cuộn tối màu cho bảng thông tin */
+    /* Tùy chỉnh thanh cuộn tối */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #0f172a; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
@@ -28,7 +28,7 @@
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-cyan-500 selection:text-black">
 
   <!-- Header -->
-  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-40">
     <div class="flex items-center gap-3">
       <div class="p-2.5 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-cyan-400">
         <i class="fa-solid fa-dna text-xl"></i>
@@ -39,8 +39,13 @@
       </div>
     </div>
 
-    <!-- Thanh tiến trình & danh mục -->
-    <div class="flex items-center gap-2 overflow-x-auto py-1 max-w-full">
+    <!-- Nút Làm Bài Kiểm Tra & Thanh Danh Mục -->
+    <div class="flex items-center gap-3 overflow-x-auto py-1 max-w-full">
+      <button onclick="openQuizModal()" class="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/20 flex items-center gap-2 transition-transform transform hover:scale-105">
+        <i class="fa-solid fa-trophy"></i>
+        <span>LÀM BÀI KIỂM TRA</span>
+      </button>
+
       <div id="quickNav" class="flex gap-1 bg-slate-900 border border-slate-800 p-1 rounded-xl"></div>
     </div>
   </header>
@@ -65,9 +70,9 @@
         <div id="hotspotLayer" class="absolute inset-0 pointer-events-auto"></div>
       </div>
 
-      <!-- Khung ghi chú nhanh bên dưới ảnh -->
+      <!-- Ghi chú dưới ảnh -->
       <div class="p-3.5 bg-slate-950/60 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-        <span><i class="fa-solid fa-circle-info text-cyan-400 mr-1.5"></i>Các điểm ngoài ảnh (Khung xương, Thể vùi, Trung thể, Lục lạp) hiển thị tại menu trên.</span>
+        <span><i class="fa-solid fa-circle-info text-cyan-400 mr-1.5"></i>Các điểm ngoài ảnh (Peroxysom, Trung thể, Khung xương, Thể vùi) hiển thị tại menu trên.</span>
         <span id="progressIndicator" class="font-mono text-cyan-400 font-semibold">1 / 15</span>
       </div>
     </section>
@@ -113,6 +118,47 @@
     </aside>
 
   </main>
+
+  <!-- Hộp thoại bài kiểm tra (Quiz Modal) -->
+  <div id="quizModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Tiêu đề hộp thoại -->
+      <div class="px-6 py-4 border-b border-slate-800 bg-slate-900/90 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">
+            <i class="fa-solid fa-clipboard-question text-base"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-white text-base">Tự Lượng Giá: Cấu Trúc &amp; Chức Năng Tế Bào</h3>
+            <p class="text-[11px] text-slate-400">Bộ câu hỏi trắc nghiệm tự lượng giá Bài 2 Sinh học y sinh</p>
+          </div>
+        </div>
+        <button onclick="closeQuizModal()" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Thân hộp thoại chứa nội dung câu hỏi -->
+      <div class="p-6 overflow-y-auto flex-1 text-sm leading-relaxed" id="quizContainer">
+        <!-- Render tự động bằng JavaScript -->
+      </div>
+
+      <!-- Chân hộp thoại -->
+      <div class="px-6 py-3.5 border-t border-slate-800 bg-slate-950/70 flex items-center justify-between">
+        <div id="quizStatus" class="text-xs text-slate-400 font-medium">
+          Câu hỏi <span id="currentQNum" class="text-cyan-400 font-bold">1</span> / <span id="totalQNum">10</span>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnPrevQ" onclick="prevQuestion()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition disabled:opacity-40" disabled>
+            <i class="fa-solid fa-arrow-left mr-1"></i> Câu trước
+          </button>
+          <button id="btnNextQ" onclick="nextQuestion()" class="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold rounded-lg transition">
+            Câu sau <i class="fa-solid fa-arrow-right ml-1"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
     const organelles = [
@@ -294,8 +340,126 @@
       }
     ];
 
+    // ==========================================
+    // BỘ CÂU HỎI TRẮC NGHIỆM TỰ LƯỢNG GIÁ Y SINH
+    // ==========================================
+    const quizQuestions = [
+      {
+        question: "Ở tế bào người, cấu trúc hạch nhân (nhân con) được hình thành từ sự chụm đầu của bao nhiêu nhiễm sắc thể tâm đầu?",
+        options: [
+          "5 nhiễm sắc thể thuộc các cặp 13, 14, 15, 21, 22",
+          "10 nhiễm sắc thể thuộc các cặp 13, 14, 15, 21, 22",
+          "8 nhiễm sắc thể thuộc các cặp 13, 15, 18, 21",
+          "46 nhiễm sắc thể của bộ lưỡng bội"
+        ],
+        answer: 1,
+        explanation: "Trọng tâm thi: Tế bào người có 1 hạch nhân được tạo thành do 10 NST tâm đầu thuộc 5 cặp NST: 13, 14, 15, 21 và 22 chụm đầu lại."
+      },
+      {
+        question: "Bệnh lý tiêu thể Tay-Sachs ở người có nguyên nhân trực tiếp do thiếu hụt enzyme nào?",
+        options: [
+          "Enzyme Catalase",
+          "Enzyme β-N-Hexosaminidase",
+          "Enzyme RNA Polymerase",
+          "Enzyme ATP Synthase"
+        ],
+        answer: 1,
+        explanation: "Bệnh Tay-Sachs là bệnh di truyền lặn trên NST thường, do thiếu hụt enzyme β-N-Hexosaminidase dẫn đến tích tụ gangliosid GM2 ở mô não gây thoái hóa thần kinh và tử vong khoảng 5 tuổi."
+      },
+      {
+        question: "Khi cơ thể tiếp xúc với nhiều chất độc, mạng lưới nội chất hạt nhẵn (SER) phản ứng như thế nào?",
+        options: [
+          "Giảm số lượng để hạn chế tổng hợp chất độc",
+          "Tăng nhanh số lượng để giải độc, tiêu độc xong giải thể qua tiêu thể (lysosome)",
+          "Chuyển hóa hoàn toàn thành lưới nội chất có hạt (RER)",
+          "Bị phân hủy ngay lập tức bởi peroxysom"
+        ],
+        answer: 1,
+        explanation: "Lưới nội chất nhẵn (SER) đảm nhận chức năng giải độc. Khi gặp nhiều độc chất, SER tăng nhanh số lượng để biến chất không tan thành tan trong nước, sau đó tự giải thể qua tiêu thể."
+      },
+      {
+        question: "Tại sao các đột biến trên ADN ty thể ở người lại di truyền theo dòng mẹ?",
+        options: [
+          "Vì ADN của ty thể ở tinh trùng bị bất hoạt khi vào bào tương noãn",
+          "Vì tinh trùng chỉ có khoảng 4 ty thể ở phần cổ và không đi vào noãn bào khi thụ tinh",
+          "Vì trứng tiêu hóa toàn bộ các bào quan của tinh trùng bằng enzyme lysozyme",
+          "Vì ty thể người mẹ nhân đôi nhanh gấp nhiều lần ty thể người cha"
+        ],
+        answer: 1,
+        explanation: "Ở người, tinh trùng chỉ có 4 ty thể tập trung ở phần cổ và bị rụng lại bên ngoài noãn bào trong quá trình thụ tinh, do đó hợp tử chỉ chứa ty thể có nguồn gốc từ mẹ."
+      },
+      {
+        question: "Enzyme catalase trong bào quan Peroxysom đảm nhận vai trò sinh học chính nào?",
+        options: [
+          "Tổng hợp chuỗi polypeptide bậc một",
+          "Thủy phân protein ngoại bào trong môi trường axit",
+          "Phân giải chất độc hại H₂O₂ thành H₂O và O₂",
+          "Gấp cuộn và bổ sung chuỗi oligosaccharide cho protein"
+        ],
+        answer: 2,
+        explanation: "Peroxysom chứa enzyme catalase, chuyên thực hiện phản ứng phân giải hợp chất độc hại hydrogen peroxide: 2H₂O₂ ➔ 2H₂O + O₂ và điều chỉnh chuyển hóa lipid/glucose."
+      },
+      {
+        question: "Ribosom tự do lơ lửng trong dịch bào tương có chức năng sinh tổng hợp nhóm protein nào?",
+        options: [
+          "Protein xuất khẩu ra ngoại bào",
+          "Các enzyme thủy phân của tiêu thể (lysosome)",
+          "Protein hòa tan phục vụ nhu cầu nội bộ tế bào",
+          "Các kháng thể miễn dịch và hormon peptide"
+        ],
+        answer: 2,
+        explanation: "Ribosom tự do tổng hợp protein hòa tan dùng nội bộ tế bào; trong khi ribosom đính trên màng RER tổng hợp protein xuất khẩu hoặc đóng gói (enzyme tiêu thể, kháng thể, hormon)."
+      },
+      {
+        question: "Ở kỳ giữa của quá trình phân bào, nhiễm sắc thể tâm giữa có đặc điểm hình thái nào?",
+        options: [
+          "Nhánh ngắn p = 0",
+          "Nhánh ngắn p < nhánh dài q",
+          "Chiều dài nhánh ngắn p bằng nhánh dài q (p = q)",
+          "Không quan sát thấy tâm động"
+        ],
+        answer: 2,
+        explanation: "Ở kỳ giữa, NST co ngắn cực đại gồm 2 chromatid dính ở tâm động chia nhánh ngắn p và nhánh dài q. Tâm giữa có p = q, tâm gần giữa có p < q, tâm đầu có p ≈ 0."
+      },
+      {
+        question: "Loại tế bào nào sau đây ở người KHÔNG có trung thể, do đó mất khả năng phân chia?",
+        options: [
+          "Tế bào bạch cầu lympho máu ngoại vi",
+          "Tế bào nơron thần kinh trưởng thành",
+          "Tế bào biểu mô ruột non",
+          "Tế bào mỡ (adipocyte)"
+        ],
+        answer: 1,
+        explanation: "Tế bào động vật bậc cao đều có trung thể ngoại trừ tế bào nơron thần kinh trưởng thành, vì vậy nơron không thể tạo thoi vô sắc và mất vĩnh viễn khả năng phân bào."
+      },
+      {
+        question: "Các thể vùi (cellular inclusions) trong bào tương của tế bào gan và cơ chủ yếu tồn tại dưới dạng phân tử nào?",
+        options: [
+          "Các hạt glycogen dự trữ",
+          "Các giọt mỡ cholesterol este hóa",
+          "Các túi tinh thể enzyme thủy phân",
+          "Các phức hợp kháng nguyên HLA"
+        ],
+        answer: 0,
+        explanation: "Thể vùi là các cấu trúc không màng dự trữ năng lượng: điển hình là các hạt glycogen dự trữ trong gan và cơ vân, các giọt mỡ triacylglycerol trong mô mỡ."
+      },
+      {
+        question: "Tại sao trong giám định pháp y tử thi bị hủy hoại hoặc cháy, người ta ưu tiên sử dụng ADN ty thể thay vì ADN nhân?",
+        options: [
+          "Vì ADN ty thể có cấu trúc mạch thẳng bền vững hơn",
+          "Vì xác suất tồn tại của ADN ty thể khi mẫu bị đốt cháy cao hơn ADN nhân rất nhiều",
+          "Vì ADN ty thể chứa đầy đủ 46 nhiễm sắc thể của cơ thể",
+          "Vì ADN ty thể không bao giờ bị đột biến"
+        ],
+        answer: 1,
+        explanation: "Mỗi tế bào có hàng trăm đến hàng nghìn bản sao ADN ty thể dạng vòng kín bền vững, nên khi mẫu bị đốt cháy/phân hủy nặng, ADN ty thể có xác suất tồn tại cao hơn hẳn ADN nhân."
+      }
+    ];
+
     let currentIndex = 0;
     let autoInterval = null;
+    let currentQuizIndex = 0;
+    let userAnswers = new Array(quizQuestions.length).fill(null);
 
     function renderNavAndHotspots() {
       const layer = document.getElementById('hotspotLayer');
@@ -304,7 +468,6 @@
       nav.innerHTML = '';
 
       organelles.forEach((org, idx) => {
-        // Chỉ vẽ hotspot trên ảnh cho các bào quan có tọa độ
         if (org.hasHotspot) {
           const btn = document.createElement('button');
           btn.id = `hotspot-${idx}`;
@@ -319,7 +482,6 @@
           layer.appendChild(btn);
         }
 
-        // Tạo nút bấm số trên thanh header
         const navBtn = document.createElement('button');
         navBtn.id = `nav-${idx}`;
         navBtn.className = `px-2 py-1 text-xs rounded-lg font-medium transition ${
@@ -365,7 +527,150 @@
       }
     }
 
-    // Khởi tạo
+    // ==========================================
+    // LOGIC HỘP THOẠI BÀI KIỂM TRA (QUIZ MODAL)
+    // ==========================================
+    function openQuizModal() {
+      document.getElementById('quizModal').classList.remove('hidden');
+      renderQuestion(currentQuizIndex);
+    }
+
+    function closeQuizModal() {
+      document.getElementById('quizModal').classList.add('hidden');
+    }
+
+    function renderQuestion(index) {
+      currentQuizIndex = index;
+      const q = quizQuestions[index];
+      const container = document.getElementById('quizContainer');
+      const selected = userAnswers[index];
+
+      document.getElementById('currentQNum').innerText = index + 1;
+      document.getElementById('totalQNum').innerText = quizQuestions.length;
+
+      document.getElementById('btnPrevQ').disabled = (index === 0);
+      document.getElementById('btnNextQ').innerHTML = (index === quizQuestions.length - 1) 
+        ? `Xem kết quả <i class="fa-solid fa-check ml-1"></i>` 
+        : `Câu sau <i class="fa-solid fa-arrow-right ml-1"></i>`;
+
+      let optionsHtml = '';
+      q.options.forEach((opt, optIdx) => {
+        let optClass = 'border-slate-800 bg-slate-950/40 text-slate-300 hover:border-cyan-500/50 hover:bg-slate-800/40';
+        let badgeClass = 'bg-slate-800 text-slate-400 border-slate-700';
+
+        if (selected !== null) {
+          if (optIdx === q.answer) {
+            optClass = 'border-emerald-500 bg-emerald-950/30 text-emerald-200';
+            badgeClass = 'bg-emerald-500 text-slate-950 font-bold border-emerald-400';
+          } else if (optIdx === selected) {
+            optClass = 'border-rose-500 bg-rose-950/30 text-rose-200';
+            badgeClass = 'bg-rose-500 text-white font-bold border-rose-400';
+          }
+        }
+
+        const letters = ['A', 'B', 'C', 'D'];
+        optionsHtml += `
+          <button onclick="handleSelectAnswer(${index}, ${optIdx})" class="w-full text-left p-3.5 rounded-xl border flex items-start gap-3 transition ${optClass}" ${selected !== null ? 'disabled' : ''}>
+            <span class="w-6 h-6 rounded-lg flex items-center justify-center text-xs border flex-shrink-0 ${badgeClass}">${letters[optIdx]}</span>
+            <span class="text-xs md:text-sm pt-0.5">${opt}</span>
+          </button>
+        `;
+      });
+
+      let explainHtml = '';
+      if (selected !== null) {
+        explainHtml = `
+          <div class="mt-4 p-3.5 rounded-xl border ${selected === q.answer ? 'border-emerald-500/30 bg-emerald-950/20 text-emerald-300' : 'border-amber-500/30 bg-amber-950/20 text-amber-200'}">
+            <div class="flex items-center gap-2 font-semibold text-xs mb-1">
+              <i class="fa-solid ${selected === q.answer ? 'fa-circle-check text-emerald-400' : 'fa-circle-exclamation text-amber-400'}"></i>
+              <span>${selected === q.answer ? 'CHÍNH XÁC!' : 'CHƯA CHÍNH XÁC!'}</span>
+            </div>
+            <p class="text-xs leading-relaxed opacity-90">${q.explanation}</p>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <div class="mb-4">
+          <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">CÂU HỎI ${index + 1}</span>
+          <h4 class="text-sm md:text-base font-semibold text-white mt-2">${q.question}</h4>
+        </div>
+        <div class="space-y-2.5">
+          ${optionsHtml}
+        </div>
+        ${explainHtml}
+      `;
+    }
+
+    function handleSelectAnswer(qIndex, optIndex) {
+      userAnswers[qIndex] = optIndex;
+      renderQuestion(qIndex);
+    }
+
+    function prevQuestion() {
+      if (currentQuizIndex > 0) {
+        renderQuestion(currentQuizIndex - 1);
+      }
+    }
+
+    function nextQuestion() {
+      if (currentQuizIndex < quizQuestions.length - 1) {
+        renderQuestion(currentQuizIndex + 1);
+      } else {
+        renderQuizResult();
+      }
+    }
+
+    function renderQuizResult() {
+      let correctCount = 0;
+      userAnswers.forEach((ans, idx) => {
+        if (ans === quizQuestions[idx].answer) correctCount++;
+      });
+
+      const percent = Math.round((correctCount / quizQuestions.length) * 100);
+      const container = document.getElementById('quizContainer');
+
+      container.innerHTML = `
+        <div class="text-center py-6">
+          <div class="w-20 h-20 rounded-full mx-auto flex items-center justify-center text-3xl mb-4 ${percent >= 70 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'}">
+            <i class="fa-solid ${percent >= 70 ? 'fa-award' : 'fa-graduation-cap'}"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-1">Kết Quả Đánh Giá</h3>
+          <p class="text-xs text-slate-400 mb-4">Bạn đã hoàn thành bài kiểm tra trắc nghiệm y sinh</p>
+          
+          <div class="inline-flex items-center gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800 mb-6">
+            <div>
+              <div class="text-2xl font-black text-cyan-400">${correctCount} / ${quizQuestions.length}</div>
+              <div class="text-[11px] text-slate-500">Số câu đúng</div>
+            </div>
+            <div class="w-px h-8 bg-slate-800"></div>
+            <div>
+              <div class="text-2xl font-black text-amber-400">${percent}%</div>
+              <div class="text-[11px] text-slate-500">Tỷ lệ chính xác</div>
+            </div>
+          </div>
+
+          <div>
+            <button onclick="resetQuiz()" class="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs rounded-xl shadow-lg transition">
+              <i class="fa-solid fa-rotate-right mr-1.5"></i> Làm lại bài kiểm tra
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('btnPrevQ').style.display = 'none';
+      document.getElementById('btnNextQ').style.display = 'none';
+      document.getElementById('quizStatus').innerText = 'ĐÃ HOÀN THÀNH BÀI THI';
+    }
+
+    function resetQuiz() {
+      userAnswers = new Array(quizQuestions.length).fill(null);
+      document.getElementById('btnPrevQ').style.display = 'inline-flex';
+      document.getElementById('btnNextQ').style.display = 'inline-flex';
+      renderQuestion(0);
+    }
+
+    // Khởi tạo hiển thị ban đầu
     selectOrganelle(0);
   </script>
 </body>
