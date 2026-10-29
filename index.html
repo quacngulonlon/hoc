@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mô Hình Tương Tác Hệ Thống Nội Màng Tế Bào</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+      70% { transform: scale(1.15); box-shadow: 0 0 0 14px rgba(56, 189, 248, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+    }
+    .hotspot-active {
+      animation: pulse-ring 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-cyan-500 selection:text-black">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur px-6 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
+    <div class="flex items-center gap-3">
+      <div class="p-2.5 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-cyan-400">
+        <i class="fa-solid fa-dna text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold text-white tracking-wide">MÔ HÌNH HỆ THỐNG NỘI MÀNG TẾ BÀO</h1>
+        <p class="text-xs text-slate-400">Tương tác vi cấu trúc & Dòng luân chuyển vật chất</p>
+      </div>
+    </div>
+
+    <!-- Thanh tiến trình nhanh -->
+    <div class="flex items-center gap-2 overflow-x-auto py-1 max-w-full">
+      <div id="quickNav" class="flex gap-1.5 bg-slate-900 border border-slate-800 p-1.5 rounded-xl"></div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- Cột trái: Khung hiển thị hình ảnh 3D -->
+    <section class="lg:col-span-8 bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+      <div class="p-3 border-b border-slate-800/80 bg-slate-900/90 flex items-center justify-between text-xs text-slate-400">
+        <span class="flex items-center gap-2"><i class="fa-solid fa-microscope text-cyan-400"></i> Nhấp trực tiếp vào các điểm số trên ảnh</span>
+        <button id="btnAutoPlay" onclick="toggleAutoPlay()" class="px-3 py-1 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-play text-xs"></i> <span>Chạy chu trình tự động</span>
+        </button>
+      </div>
+
+      <!-- Container hình ảnh tỷ lệ chuẩn 16:9 -->
+      <div class="relative w-full aspect-video bg-black overflow-hidden select-none" id="viewport">
+        <img id="cellImage" src="cell-3d.png" alt="Mô phỏng tế bào 3D" class="w-full h-full object-cover">
+        
+        <!-- Lớp phủ điểm Hotspot -->
+        <div id="hotspotLayer" class="absolute inset-0 pointer-events-auto"></div>
+      </div>
+    </section>
+
+    <!-- Cột phải: Bảng thông tin chi tiết -->
+    <aside class="lg:col-span-4 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-2xl sticky top-24 flex flex-col gap-5">
+      <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+        <div>
+          <span id="organelleStep" class="text-xs font-semibold px-2.5 py-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-md">VỊ TRÍ 1</span>
+          <h2 id="organelleTitle" class="text-xl font-bold text-white mt-2">Nhân tế bào</h2>
+          <p id="organelleLatin" class="text-xs text-slate-400 italic font-mono mt-0.5">Nucleus</p>
+        </div>
+        <div id="organelleIcon" class="p-3 bg-slate-800 border border-slate-700/60 rounded-xl text-cyan-400 text-lg">
+          <i class="fa-solid fa-atom"></i>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-sm leading-relaxed">
+        <div>
+          <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2 mb-1.5">
+            <i class="fa-solid fa-layer-group text-cyan-400"></i> Cấu tạo vi thể
+          </h4>
+          <p id="organelleStructure" class="text-slate-300 text-xs md:text-sm bg-slate-950/40 p-3 rounded-lg border border-slate-800/80"></p>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2 mb-1.5">
+            <i class="fa-solid fa-gear text-cyan-400"></i> Chức năng sinh học
+          </h4>
+          <p id="organelleFunction" class="text-slate-300 text-xs md:text-sm bg-slate-950/40 p-3 rounded-lg border border-slate-800/80"></p>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2 mb-1.5">
+            <i class="fa-solid fa-route text-cyan-400"></i> Mắt xích liên kết dòng nội màng
+          </h4>
+          <p id="organellePathway" class="text-cyan-200 text-xs md:text-sm bg-cyan-950/20 p-3 rounded-lg border border-cyan-800/30"></p>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <script>
+    const organelles = [
+      {
+        id: 1,
+        title: "Nhân con (Hạch nhân)",
+        latin: "Nucleolus",
+        icon: "fa-circle-dot",
+        x: 10, y: 31,
+        structure: "Cấu trúc đặc không có màng bao bọc nằm bên trong nhân, gồm các phân tử rARN và protein liên kết.",
+        function: "Nơi phiên mã gen rARN và tự lắp ráp sơ bộ các tiểu phần ribosome (lớn và nhỏ).",
+        pathway: "Gửi các tiểu đơn vị ribosome ra ngoài tế bào chất qua lỗ màng nhân để sẵn sàng cho quá trình dịch mã."
+      },
+      {
+        id: 2,
+        title: "Nhân tế bào",
+        latin: "Nucleus",
+        icon: "fa-atom",
+        x: 23, y: 34,
+        structure: "Bao bọc bởi màng nhân kép. Bên trong chứa chất nhiễm sắc (ADN kết hợp protein histone).",
+        function: "Trung tâm lưu trữ và bảo tồn thông tin di truyền; điều hòa mọi hoạt động sinh hóa của tế bào.",
+        pathway: "Phiên mã tạo mARN mang mật mã tổng hợp protein, chuyển giao bản mã này ra lưới nội chất."
+      },
+      {
+        id: 3,
+        title: "Màng nhân & Lỗ nhân",
+        latin: "Nuclear Envelope & Pores",
+        icon: "fa-bullseye",
+        x: 37, y: 7,
+        structure: "Màng kép phospholipid với hàng nghìn phức hợp lỗ nhân (nuclear pore complexes) đường kính ~120nm.",
+        function: "Kiểm soát chọn lọc các đại phân tử (mARN, protein, tiểu phần ribosome) ra vào nhân.",
+        pathway: "Màng ngoài nhân nối liền trực tiếp với màng của lưới nội chất hạt."
+      },
+      {
+        id: 4,
+        title: "Ribosome",
+        latin: "Ribosomes",
+        icon: "fa-braille",
+        x: 44, y: 15,
+        structure: "Gồm tiểu phần lớn và nhỏ cấu tạo từ rARN và chuỗi polypeptide, không có màng bao bọc.",
+        function: "Dịch mã thông tin di truyền từ mARN thành các chuỗi polypeptide bậc một.",
+        pathway: "Ribosome đính trên màng ER hạt đẩy chuỗi peptide thẳng vào xoang ER để gấp cuộn."
+      },
+      {
+        id: 5,
+        title: "Lưới nội chất hạt",
+        latin: "Rough Endoplasmic Reticulum (RER)",
+        icon: "fa-bars-staggered",
+        x: 31, y: 58,
+        structure: "Hệ thống các túi dẹt thông với nhau, mặt ngoài đính dày đặc các hạt ribosome.",
+        function: "Gấp cuộn protein theo không gian 3 chiều chuẩn xác, glycosyl hóa sơ bộ tạo glycoprotein.",
+        pathway: "Đóng gói protein hoàn thiện vào các túi vận chuyển nảy chồi ra từ màng để gửi sang bộ máy Golgi."
+      },
+      {
+        id: 6,
+        title: "Lưới nội chất trơn",
+        latin: "Smooth Endoplasmic Reticulum (SER)",
+        icon: "fa-network-wired",
+        x: 48, y: 70,
+        structure: "Hệ thống ống hình trụ phân nhánh liên tục, bề mặt trơn nhẵn không có ribosome.",
+        function: "Tổng hợp lipid, phospholipid màng tế bào, chuyển hóa carbohydrate và giải độc hóa chất.",
+        pathway: "Cung cấp thành phần lipid màng cho toàn bộ tế bào và dự trữ ion Canxi cho việc truyền tín hiệu."
+      },
+      {
+        id: 7,
+        title: "Túi vận chuyển",
+        latin: "Transport Vesicles",
+        icon: "fa-boxes-packing",
+        x: 54, y: 19,
+        structure: "Túi màng cầu nhỏ nảy chồi từ lưới nội chất, mang theo protein và màng lipid mới.",
+        function: "Vận chuyển vật chất chuyên biệt di chuyển dọc theo các vi ống tế bào.",
+        pathway: "Hòa màng với mặt nhập (cis face) của bộ máy Golgi để đưa hàng hóa vào trạm xử lý tiếp theo."
+      },
+      {
+        id: 8,
+        title: "Bộ máy Golgi",
+        latin: "Golgi Apparatus",
+        icon: "fa-cubes-stacked",
+        x: 69, y: 44,
+        structure: "Chồng túi dẹt xếp song song có tính phân cực cao: mặt cis (nhập) và mặt trans (xuất).",
+        function: "Biến đổi hóa học, tinh chỉnh protein, gắn thẻ tín hiệu địa chỉ phân loại protein.",
+        pathway: "Nảy chồi thành túi tiết đưa ra màng tế bào hoặc tạo thành enzyme cho lysosome."
+      },
+      {
+        id: 9,
+        title: "Lysosome",
+        latin: "Lysosome",
+        icon: "fa-bacterium",
+        x: 74, y: 13,
+        structure: "Túi màng đơn chứa hơn 50 loại enzyme thủy phân hoạt động ở môi trường axit (pH ~4.5 - 5).",
+        function: "Phân giải bào quan già cỗi (tự thực bào) và tiêu hóa các hạt ngoại bào qua thực bào.",
+        pathway: "Nhận các hydrolase axit đã được đánh dấu mannose-6-phosphate từ bộ máy Golgi."
+      },
+      {
+        id: 10,
+        title: "Ty thể",
+        latin: "Mitochondria",
+        icon: "fa-bolt",
+        x: 64, y: 81,
+        structure: "Bao bọc bởi màng kép: màng trong gấp nếp thành các gờ mào (cristae) chứa phức hợp ATP synthase.",
+        function: "Hô hấp tế bào, chuyển hóa glucose và chất hữu cơ thành năng lượng dự trữ dạng ATP.",
+        pathway: "Cung cấp năng lượng ATP cho hoạt động đóng gói, dịch chuyển túi tiết và xuất bào của hệ thống nội màng."
+      },
+      {
+        id: 11,
+        title: "Màng sinh chất & Xuất bào",
+        latin: "Plasma Membrane & Exocytosis",
+        icon: "fa-circle-notch",
+        x: 93, y: 19,
+        structure: "Lớp màng lipid kép khảm protein bao bọc toàn bộ tế bào chất.",
+        function: "Duy trì ranh giới tế bào, trao đổi chất có chọn lọc và tiếp nhận tín hiệu từ môi trường.",
+        pathway: "Túi tiết từ Golgi hòa màng với màng sinh chất để giải phóng hormone, enzyme ra ngoài môi trường."
+      }
+    ];
+
+    let currentIndex = 0;
+    let autoInterval = null;
+
+    function renderHotspots() {
+      const layer = document.getElementById('hotspotLayer');
+      const nav = document.getElementById('quickNav');
+      layer.innerHTML = '';
+      nav.innerHTML = '';
+
+      organelles.forEach((org, idx) => {
+        // Tạo nút ghim trên ảnh
+        const btn = document.createElement('button');
+        btn.id = `hotspot-${idx}`;
+        btn.className = `absolute -translate-x-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs border border-white/60 shadow-lg transition-transform hover:scale-125 focus:outline-none ${
+          idx === currentIndex ? 'bg-cyan-500 text-slate-950 font-black scale-110 hotspot-active ring-2 ring-white' : 'bg-slate-900/80 text-cyan-400 hover:bg-cyan-500 hover:text-black'
+        }`;
+        btn.style.left = `${org.x}%`;
+        btn.style.top = `${org.y}%`;
+        btn.innerText = org.id;
+        btn.onclick = () => selectOrganelle(idx);
+        layer.appendChild(btn);
+
+        // Tạo nút số ở thanh điều hướng nhanh phía trên
+        const navBtn = document.createElement('button');
+        navBtn.id = `nav-${idx}`;
+        navBtn.className = `px-2.5 py-1 text-xs rounded-lg font-medium transition ${
+          idx === currentIndex ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+        }`;
+        navBtn.innerText = org.id;
+        navBtn.onclick = () => selectOrganelle(idx);
+        nav.appendChild(navBtn);
+      });
+    }
+
+    function selectOrganelle(index) {
+      currentIndex = index;
+      const data = organelles[index];
+
+      document.getElementById('organelleStep').innerText = `BƯỚC ${data.id} TRONG CHUỖI NỘI MÀNG`;
+      document.getElementById('organelleTitle').innerText = data.title;
+      document.getElementById('organelleLatin').innerText = data.latin;
+      document.getElementById('organelleStructure').innerText = data.structure;
+      document.getElementById('organelleFunction').innerText = data.function;
+      document.getElementById('organellePathway').innerText = data.pathway;
+      document.getElementById('organelleIcon').innerHTML = `<i class="fa-solid ${data.icon}"></i>`;
+
+      renderHotspots();
+    }
+
+    function toggleAutoPlay() {
+      const btn = document.getElementById('btnAutoPlay');
+      if (autoInterval) {
+        clearInterval(autoInterval);
+        autoInterval = null;
+        btn.innerHTML = `<i class="fa-solid fa-play text-xs"></i> <span>Chạy chu trình tự động</span>`;
+        btn.className = btn.className.replace('bg-emerald-500/20 text-emerald-300', 'bg-cyan-500/20 text-cyan-300');
+      } else {
+        autoInterval = setInterval(() => {
+          selectOrganelle((currentIndex + 1) % organelles.length);
+        }, 3200);
+        btn.innerHTML = `<i class="fa-solid fa-pause text-xs"></i> <span>Tạm dừng</span>`;
+        btn.className = btn.className.replace('bg-cyan-500/20 text-cyan-300', 'bg-emerald-500/20 text-emerald-300');
+      }
+    }
+
+    // Khởi tạo ban đầu
+    selectOrganelle(0);
+  </script>
+</body>
+</html>
